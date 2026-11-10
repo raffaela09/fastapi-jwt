@@ -1,17 +1,26 @@
-# Sistema de Livraria Online - FastAPI & SQLAlchemy
+# Sistema de Livraria Online - FastAPI, SQLAlchemy & Autenticação OAuth2 com JWT
 
-API REST desenvolvida com FastAPI para gerenciamento de livros, integrada a um banco de dados SQLite utilizando SQLAlchemy e versionamento de banco com Alembic.
+API REST desenvolvida com **FastAPI** para gerenciamento de livros, persistência de dados com **SQLite** e **SQLAlchemy**, controle de migrações com **Alembic**, e camada de segurança com **OAuth2 com Password Flow**, hash de senhas via **Passlib (bcrypt)** e tokens **JWT (PyJWT)**.
+
+---
+
+## 👥 Integrantes do Projeto
+
+- Rafaela Virginio Franco 
+- Izabella Araújo
 
 ---
 
 ## 🛠️ Tecnologias Utilizadas
 
 - **[Python 3.10+](https://www.python.org/)**
-- **[FastAPI](https://fastapi.tiangolo.com/)**: Framework web moderno e de alta performance.
-- **[SQLAlchemy](https://www.sqlalchemy.org/)**: ORM para mapeamento objeto-relacional e comunicação com SQLite.
-- **[Alembic](https://alembic.sqlalchemy.org/)**: Ferramenta de migração de banco de dados.
-- **[Pydantic](https://docs.pydantic.dev/)**: Validação e serialização de dados.
-- **[Uvicorn](https://www.uvicorn.org/)**: Servidor ASGI.
+- **[FastAPI](https://fastapi.tiangolo.com/)**: Framework web moderno e assíncrono.
+- **[SQLAlchemy](https://www.sqlalchemy.org/)**: ORM para comunicação com o banco de dados SQLite.
+- **[Alembic](https://alembic.sqlalchemy.org/)**: Gerenciamento de migrações de esquema do banco de dados.
+- **[Pydantic](https://docs.pydantic.dev/)**: Validação e serialização de dados estruturados.
+- **[Passlib (bcrypt)](https://passlib.readthedocs.io/)**: Hashing seguro e verificação de senhas.
+- **[PyJWT](https://pyjwt.readthedocs.io/)**: Geração e validação de tokens JWT.
+- **[Uvicorn](https://www.uvicorn.org/)**: Servidor ASGI de alta performance.
 
 ---
 
@@ -20,7 +29,7 @@ API REST desenvolvida com FastAPI para gerenciamento de livros, integrada a um b
 ### 1. Clonar o repositório
 
 ```bash
-git clone https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+git clone https://github.com/raffaela09/fastapi_persistencia_dados.git
 cd projeto_rogerio
 ```
 
@@ -46,56 +55,123 @@ pip install -r requirements.txt
 
 ### 4. Executar as migrações do banco de dados (Alembic)
 
-Para criar o banco de dados SQLite local (`livraria.db`) e a tabela de livros:
+Para criar ou atualizar as tabelas do banco de dados (`books` e `users`):
 
 ```bash
 alembic upgrade head
 ```
 
-### 5. Iniciar o servidor
+### 5. Iniciar o servidor de desenvolvimento
 
 ```bash
 uvicorn main:app --reload
 ```
 
-A API estará rodando em: `http://127.0.0.1:8000`
+A API estará disponível em: `http://127.0.0.1:8000`
 
 ---
 
-## 📖 Documentação da API
+## 📖 Documentação Interativa da API
 
-Após iniciar o servidor, você pode acessar a documentação interativa gerada automaticamente pelo Swagger:
+Com a aplicação rodando, acesse a documentação interativa gerada pelo FastAPI:
 
 - **Swagger UI:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
 - **ReDoc:** [http://127.0.0.1:8000/redoc](http://127.0.0.1:8000/redoc)
 
 ---
 
-## 📌 Rotas da API (CRUD de Livros)
+## 📌 Rotas da API
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `GET` | `/` | Mensagem de boas-vindas |
-| `POST` | `/books/` | Cadastra um novo livro |
-| `GET` | `/books/` | Lista todos os livros cadastrados |
-| `GET` | `/books/{book_id}` | Obtém detalhes de um livro por ID |
-| `PUT` | `/books/{book_id}` | Atualiza os dados de um livro por ID |
-| `DELETE` | `/books/{book_id}` | Remove um livro por ID |
+### Autenticação & Usuários
+
+| Método | Rota | Acesso | Descrição |
+|---|---|---|---|
+| `POST` | `/users/` | **Público** | Cadastra um novo usuário (armazena senha com hash bcrypt) |
+| `POST` | `/token` | **Público** | Endpoint OAuth2 Password: recebe credenciais e retorna o token JWT |
+| `POST` | `/login` | **Público** | Endpoint alternativo de login recebendo JSON (`email` e `password`) |
+| `GET` | `/users/me` | 🔒 **Protegido** | Retorna os dados do usuário atualmente autenticado |
+
+### CRUD de Livros
+
+| Método | Rota | Acesso | Descrição |
+|---|---|---|---|
+| `GET` | `/` | **Público** | Mensagem de status da API |
+| `GET` | `/books/` | **Público** | Lista todos os livros cadastrados |
+| `GET` | `/books/{book_id}` | **Público** | Obtém os detalhes de um livro específico |
+| `POST` | `/books/` | 🔒 **Protegido** | Cadastra um novo livro (Requer Token JWT) |
+| `PUT` | `/books/{book_id}` | 🔒 **Protegido** | Atualiza os dados de um livro existente (Requer Token JWT) |
+| `DELETE` | `/books/{book_id}` | 🔒 **Protegido** | Remove um livro cadastrado (Requer Token JWT) |
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🔑 Segurança e Autenticação (OAuth2 + JWT)
+
+### Exemplo de Token JWT Gerado pelo Sistema
+
+Abaixo está um exemplo real de token JWT gerado pela rota `/token` da aplicação:
 
 ```text
-├── alembic/              # Diretório de migrações do Alembic
-│   ├── versions/         # Arquivos de migração gerados
-│   └── env.py            # Configuração do ambiente do Alembic
-├── alembic.ini           # Configurações do Alembic
-├── database.py           # Configuração do SQLAlchemy e sessão do banco
-├── models.py             # Modelos de tabelas do banco de dados (SQLAlchemy)
-├── schemas.py            # Modelos de validação e serialização (Pydantic)
-├── main.py               # Rotas e regras de negócio da API FastAPI
-├── requirements.txt      # Dependências do projeto
-├── .gitignore            # Arquivos e diretórios ignorados pelo Git (*.db, venv, etc.)
-└── README.md             # Instruções de execução do projeto
+eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3VhcmlvQGV4ZW1wbG8uY29tIiwiZXhwIjoxNzk0MzUwNjY1fQ.fJyv4WufeWNiAi6ABO3ypQl0PuPlB4rSva4pEzrpyCw
+```
+
+#### Estrutura do Token:
+
+- **Header:**
+  ```json
+  {
+    "alg": "HS256",
+    "typ": "JWT"
+  }
+  ```
+- **Payload:**
+  ```json
+  {
+    "sub": "usuario@exemplo.com",
+    "exp": 1794350665
+  }
+  ```
+- **Signature:** Assinatura criptográfica HMAC SHA-256 baseada na chave secreta da aplicação.
+
+---
+
+## 🧪 Como Testar o Login e Rotas Protegidas pelo Swagger UI
+
+1. Abra o navegador em [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs).
+2. **Cadastre um usuário:**
+   - Expanda a rota `POST /users/`.
+   - Clique em **Try it out**.
+   - No JSON, informe um e-mail válido e uma senha (ex: `{"email": "aluno@teste.com", "password": "senha123"}`).
+   - Clique em **Execute** e confirme o retorno `201 Created`.
+3. **Autentique-se pelo Swagger:**
+   - No topo da página do Swagger, clique no botão verde **Authorize** (com ícone de cadeado).
+   - No formulário que abrir:
+     - No campo **username**, digite o e-mail cadastrado (ex: `aluno@teste.com`).
+     - No campo **password**, digite a senha cadastrada (ex: `senha123`).
+   - Clique em **Authorize** e depois em **Close**.
+4. **Testar as Rotas:**
+   - **Rotas de Leitura (Públicas):** Acesse `GET /books/` ou `GET /books/{id}`. Elas respondem com sucesso com ou sem autenticação.
+   - **Rotas Sensíveis (Protegidas):**
+     - Enquanto estiver autenticado, teste `POST /books/`, `PUT /books/{id}` ou `DELETE /books/{id}`. As requisições serão autorizadas com sucesso.
+     - Para testar a proteção, clique novamente no botão **Authorize**, clique em **Logout**, e tente executar `POST /books/`. A API responderá com `401 Unauthorized` e mensagem `{"detail": "Not authenticated"}`.
+
+---
+
+## 📁 Estrutura de Arquivos
+
+```text
+├── alembic/                  # Diretório de migrações do Alembic
+│   ├── versions/             # Histórico de migrações (books e users)
+│   │   ├── 2f8310e299c2_create_books_table.py
+│   │   └── 53a72841395e_create_users_table.py
+│   └── env.py                # Configuração do ambiente Alembic
+├── alembic.ini               # Configurações do Alembic
+├── auth.py                   # Lógica de segurança, hash de senha e validação JWT
+├── database.py               # Configuração do SQLAlchemy e sessão do SQLite
+├── livraria.db               # Banco de dados local SQLite
+├── main.py                   # Endpoints da API FastAPI e injeção de dependências
+├── models.py                 # Modelos ORM (BookModel e UserModel)
+├── schemas.py                # Schemas de validação e serialização do Pydantic
+├── requirements.txt          # Dependências do projeto
+├── .gitignore                # Arquivos ignorados pelo controle de versão
+└── README.md                 # Documentação completa do projeto
 ```
