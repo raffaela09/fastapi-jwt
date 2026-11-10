@@ -2,6 +2,7 @@ import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
+from dotenv import load_dotenv
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jwt.exceptions import PyJWTError
@@ -12,10 +13,13 @@ import models
 import schemas
 from database import get_db
 
-#configurações de segurança do JWT
-SECRET_KEY = os.getenv("SECRET_KEY", "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
+
+# Configurações de segurança do JWT (lidas do .env com fallback seguro)
+SECRET_KEY = os.getenv("SECRET_KEY", "Chave_mt_SECRETA")
+ALGORITHM = os.getenv("ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
 #contexto de criptografia de senhas usando Passlib com bcrypt
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")

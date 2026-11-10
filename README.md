@@ -53,7 +53,22 @@ cd projeto_rogerio
 pip install -r requirements.txt
 ```
 
-### 4. Executar as migrações do banco de dados (Alembic)
+### 4. Configurar as variáveis de ambiente (.env)
+
+O projeto utiliza o arquivo `.env` para gerenciar a chave secreta e as configurações do JWT. Um arquivo `.env.example` é fornecido como modelo:
+
+- No Windows (PowerShell):
+  ```powershell
+  Copy-Item .env.example .env
+  ```
+- No Linux / macOS:
+  ```bash
+  cp .env.example .env
+  ```
+
+*(Caso o arquivo `.env` não seja criado, a aplicação utilizará valores seguros padrão de contingência).*
+
+### 5. Executar as migrações do banco de dados (Alembic)
 
 Para criar ou atualizar as tabelas do banco de dados (`books` e `users`):
 
@@ -61,7 +76,7 @@ Para criar ou atualizar as tabelas do banco de dados (`books` e `users`):
 alembic upgrade head
 ```
 
-### 5. Iniciar o servidor de desenvolvimento
+### 6. Iniciar o servidor de desenvolvimento
 
 ```bash
 uvicorn main:app --reload
@@ -172,6 +187,7 @@ eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c3VhcmlvQGV4ZW1wbG8uY29tIiwiZXh
 ├── models.py                 # Modelos ORM (BookModel e UserModel)
 ├── schemas.py                # Schemas de validação e serialização do Pydantic
 ├── requirements.txt          # Dependências do projeto
+├── .env.example              # Modelo de variáveis de ambiente
 ├── .gitignore                # Arquivos ignorados pelo controle de versão
 └── README.md                 # Documentação completa do projeto
 ```
